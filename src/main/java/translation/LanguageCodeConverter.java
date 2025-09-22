@@ -42,9 +42,11 @@ public class LanguageCodeConverter {
             iterator.next(); // skip the first line
             while (iterator.hasNext()) {
                 String line = iterator.next();
-                String[] parts = line.split("\t");
-                languageToLanguageCode.put(parts[0], parts[1]);
-                languageCodeToLanguage.put(parts[1], parts[0]);
+                String[] array_str = line.split("\t");
+                String language = array_str[0];
+                String language_code = array_str[1];
+                languageCodeToLanguage.put(language_code, language);
+                languageToLanguageCode.put(language, language_code);
             }
 
         } catch (IOException | URISyntaxException ex) {
@@ -58,7 +60,7 @@ public class LanguageCodeConverter {
      * @return the name of the language corresponding to the code
      */
     public String fromLanguageCode(String code) {
-        return languageCodeToLanguage.get(code);
+        return this.languageCodeToLanguage.get(code);
     }
 
     /**
@@ -67,7 +69,7 @@ public class LanguageCodeConverter {
      * @return the 2-letter code of the language
      */
     public String fromLanguage(String language) {
-        return languageToLanguageCode.get(language);
+        return this.languageToLanguageCode.get(language);
     }
 
     /**
