@@ -17,7 +17,7 @@ Bambara	bm
 Bashkir	ba
 Basque	eu
 Belarusian	be
-Bengali bn
+Bengali	bn
 Bislama	bi
 Bosnian	bs
 Breton	br
