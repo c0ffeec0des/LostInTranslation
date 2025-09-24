@@ -72,24 +72,11 @@ public class CountryCodeConverter {
     public String fromCountry(String country) {
         return countryToCountryCode.get(country);
     }
-
     /**
      * Return how many countries are included in this country code converter.
      * @return how many countries are included in this country code converter.
      */
     public int getNumCountries() {
         return countryToCountryCode.size();
-    }
-}
-
-    }
-
-    /**
-     * Return how many countries are included in this country code converter.
-     * @return how many countries are included in this country code converter.
-     */
-    public int getNumCountries() {
-        // TODO Task B: update this code to use an instance variable to return the correct value
-        return 0;
     }
 }
