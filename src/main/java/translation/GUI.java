@@ -1,134 +1,134 @@
 package translation;
 
 import javax.swing.*;
-import java.awt.event.*;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
+public class GUI extends JFrame {
 
-public class GUI {
+    private final JSONTranslator translator;
+    private final CountryCodeConverter countryConverter;
+    private final LanguageCodeConverter languageConverter;
+
+    private final JComboBox<String> languageDropdown;
+    private final JList<String> countryList;
+    private final JLabel translationLabel;
+
+    private String[] languageDisplayNames;
+    private String[] languageCodes;
+    private String[] countryDisplayNames;
+    private String[] countryCodes;
+
+    public GUI() throws Exception {
+        super("Country Name Translator");
+
+        translator = new JSONTranslator("sample.json");
+        countryConverter = new CountryCodeConverter("country-codes.txt");
+        languageConverter = new LanguageCodeConverter("language-codes.txt");
+
+        // --- Load languages ---
+        List<String> langCodesRaw = translator.getLanguageCodes();
+        List<NC> langPairs = new ArrayList<>();
+        for (String code : langCodesRaw) {
+            String name = languageConverter.fromLanguageCode(code);
+            if (name == null) name = code;
+            langPairs.add(new NC(name, code));
+        }
+        langPairs.sort(Comparator.comparing(nc -> nc.name.toLowerCase()));
+        languageDisplayNames = new String[langPairs.size()];
+        languageCodes = new String[langPairs.size()];
+        for (int i = 0; i < langPairs.size(); i++) {
+            languageDisplayNames[i] = langPairs.get(i).name;
+            languageCodes[i] = langPairs.get(i).code;
+        }
+
+        // --- Load countries ---
+        List<String> ctryCodesRaw = translator.getCountryCodes();
+        List<NC> ctryPairs = new ArrayList<>();
+        for (String code : ctryCodesRaw) {
+            String name = countryConverter.fromCountryCode(code);
+            if (name == null) name = code.toUpperCase();
+            ctryPairs.add(new NC(name, code));
+        }
+        ctryPairs.sort(Comparator.comparing(nc -> nc.name.toLowerCase()));
+        countryDisplayNames = new String[ctryPairs.size()];
+        countryCodes = new String[ctryPairs.size()];
+        for (int i = 0; i < ctryPairs.size(); i++) {
+            countryDisplayNames[i] = ctryPairs.get(i).name;
+            countryCodes[i] = ctryPairs.get(i).code;
+        }
+
+        // --- Layout ---
+        setLayout(new BorderLayout(8, 8));
+
+        // Top panel: Language
+        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        top.add(new JLabel("Language:"));
+        languageDropdown = new JComboBox<>(languageDisplayNames);
+        top.add(languageDropdown);
+        add(top, BorderLayout.NORTH);
+
+        // Center panel: Translation label + country list
+        JPanel center = new JPanel(new BorderLayout());
+        translationLabel = new JLabel("Translation:", SwingConstants.LEFT);
+        translationLabel.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+        center.add(translationLabel, BorderLayout.NORTH);
+
+        countryList = new JList<>(countryDisplayNames);
+        countryList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JScrollPane scrollPane = new JScrollPane(countryList);
+        center.add(scrollPane, BorderLayout.CENTER);
+
+        add(center, BorderLayout.CENTER);
+
+        // --- Events ---
+        languageDropdown.addActionListener(e -> updateTranslation());
+        countryList.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) updateTranslation();
+        });
+
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(400, 300);
+        setLocationRelativeTo(null);
+        setVisible(true);
+    }
+
+    private void updateTranslation() {
+        int langIdx = languageDropdown.getSelectedIndex();
+        int ctryIdx = countryList.getSelectedIndex();
+
+        if (langIdx < 0 || ctryIdx < 0) {
+            translationLabel.setText("Translation:");
+            return;
+        }
+
+        String langCode = languageCodes[langIdx];
+        String ctryCode = countryCodes[ctryIdx];
+        String countryName = countryDisplayNames[ctryIdx];
+
+        String result = translator.translate(ctryCode, langCode);
+        if (result != null) {
+            translationLabel.setText("Translation: " + result);
+        } else {
+            translationLabel.setText("Translation: (not found)");
+        }
+    }
+
+    private static class NC {
+        final String name;
+        final String code;
+        NC(String n, String c) { name = n; code = c; }
+    }
 
     public static void main(String[] args) {
-
-        TranslatorImplementation translator = new TranslatorImplementation();
-        // converts (country code, language code) --> expected country name in target language
-        List<String> avail_country_codes = translator.getCountryCodes();
-        List<String> avail_language_codes = translator.getLanguageCodes();
-
-        CountryCodeConverter CCconverter = new CountryCodeConverter();
-        // converts country <--> country code
-        LanguageCodeConverter LCconverter = new LanguageCodeConverter();
-        // converts language <--> language code
-
         SwingUtilities.invokeLater(() -> {
-            // COUNTRY PANEL
-            JPanel countryPanel = new JPanel();
-            JTextField countryField = new JTextField(10);
-            countryPanel.add(new JLabel("Country:"));
-            countryField.setText("afg");
-
-            // Combo box
-            JComboBox<String> countryComboBox = new JComboBox<>();
-            for(String countryCode : avail_country_codes) {
-                countryComboBox.addItem(countryCode);
+            try {
+                new GUI();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            countryPanel.add(countryComboBox);
-            countryComboBox.addItemListener(new ItemListener() {
-
-                /**
-                 * Invoked when an item has been selected or deselected by the user.
-                 * The code written for this method performs the operations
-                 * that need to occur when an item is selected (or deselected).
-                 *
-                 * @param e the event to be processed
-                 */
-                @Override
-                public void itemStateChanged(ItemEvent e) {
-
-                    if (e.getStateChange() == ItemEvent.SELECTED) {
-                        String country = countryComboBox.getSelectedItem().toString();
-                        countryField.setText(country);
-                    }
-                }
-
-            });
-
-
-            // LANGUAGE PANEL
-            JPanel languagePanel = new JPanel();
-            JTextField languageField = new JTextField(10);
-            languagePanel.add(new JLabel("Language:"));
-            languageField.setText("de");
-
-            // Combo box
-            JComboBox<String> languageComboBox = new JComboBox<>();
-            for(String languageCode : avail_language_codes) {
-                languageComboBox.addItem(languageCode);
-            }
-            languagePanel.add(languageComboBox);
-            languageComboBox.addItemListener(new ItemListener() {
-
-                /**
-                 * Invoked when an item has been selected or deselected by the user.
-                 * The code written for this method performs the operations
-                 * that need to occur when an item is selected (or deselected).
-                 *
-                 * @param e the event to be processed
-                 */
-                @Override
-                public void itemStateChanged(ItemEvent e) {
-
-                    if (e.getStateChange() == ItemEvent.SELECTED) {
-                        String language = languageComboBox.getSelectedItem().toString();
-                        languageField.setText(language);
-                    }
-                }
-
-            });
-
-
-            JPanel buttonPanel = new JPanel();
-            JButton submit = new JButton("Submit");
-            buttonPanel.add(submit);
-
-            JLabel resultLabelText = new JLabel("Translation:");
-            buttonPanel.add(resultLabelText);
-            JLabel resultLabel = new JLabel("\t\t\t\t\t\t\t");
-            buttonPanel.add(resultLabel);
-
-
-            // adding listener for when the user clicks the submit button
-            submit.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    String language = languageField.getText();
-                    String country = countryField.getText();
-
-                    // for now, just using our simple translator, but
-                    // we'll need to use the real JSON version later.
-
-                    String result = translator.translate(country, language);
-                    if (result == null) {
-                        result = "no translation found!";
-                    }
-                    resultLabel.setText(result);
-
-                }
-
-            });
-
-            JPanel mainPanel = new JPanel();
-            mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
-            mainPanel.add(countryPanel);
-            mainPanel.add(languagePanel);
-            mainPanel.add(buttonPanel);
-
-            JFrame frame = new JFrame("Country Name Translator");
-            frame.setContentPane(mainPanel);
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.pack();
-            frame.setVisible(true);
-
-
         });
     }
 }
