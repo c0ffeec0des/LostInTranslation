@@ -2,6 +2,7 @@ package translation;
 
 import java.util.List;
 
+
 /**
  * An interface providing methods related to translating country names between
  * different languages. This class works in terms of country codes and language codes.

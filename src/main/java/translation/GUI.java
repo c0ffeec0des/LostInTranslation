@@ -2,6 +2,7 @@ package translation;
 
 import javax.swing.*;
 import java.awt.event.*;
+import java.util.List;
 
 
 // TODO Task D: Update the GUI for the program to align with UI shown in the README example.
@@ -12,18 +13,83 @@ import java.awt.event.*;
 public class GUI {
 
     public static void main(String[] args) {
+
+        TranslatorImplementation translator = new TranslatorImplementation();
+        // converts (country code, language code) --> expected country name in target language
+        List<String> avail_country_codes = translator.getCountryCodes();
+        List<String> avail_language_codes = translator.getLanguageCodes();
+
+        CountryCodeConverter CCconverter = new CountryCodeConverter();
+        // converts country <--> country code
+        LanguageCodeConverter LCconverter = new LanguageCodeConverter();
+        // converts language <--> language code
+
         SwingUtilities.invokeLater(() -> {
+            // COUNTRY PANEL
             JPanel countryPanel = new JPanel();
             JTextField countryField = new JTextField(10);
-            countryField.setText("can");
-            countryField.setEditable(false); // we only support the "can" country code for now
             countryPanel.add(new JLabel("Country:"));
-            countryPanel.add(countryField);
+            countryField.setText("afg");
 
+            // Combo box
+            JComboBox<String> countryComboBox = new JComboBox<>();
+            for(String countryCode : avail_country_codes) {
+                countryComboBox.addItem(countryCode);
+            }
+            countryPanel.add(countryComboBox);
+            countryComboBox.addItemListener(new ItemListener() {
+
+                /**
+                 * Invoked when an item has been selected or deselected by the user.
+                 * The code written for this method performs the operations
+                 * that need to occur when an item is selected (or deselected).
+                 *
+                 * @param e the event to be processed
+                 */
+                @Override
+                public void itemStateChanged(ItemEvent e) {
+
+                    if (e.getStateChange() == ItemEvent.SELECTED) {
+                        String country = countryComboBox.getSelectedItem().toString();
+                        countryField.setText(country);
+                    }
+                }
+
+            });
+
+
+            // LANGUAGE PANEL
             JPanel languagePanel = new JPanel();
             JTextField languageField = new JTextField(10);
             languagePanel.add(new JLabel("Language:"));
-            languagePanel.add(languageField);
+            languageField.setText("de");
+
+            // Combo box
+            JComboBox<String> languageComboBox = new JComboBox<>();
+            for(String languageCode : avail_language_codes) {
+                languageComboBox.addItem(languageCode);
+            }
+            languagePanel.add(languageComboBox);
+            languageComboBox.addItemListener(new ItemListener() {
+
+                /**
+                 * Invoked when an item has been selected or deselected by the user.
+                 * The code written for this method performs the operations
+                 * that need to occur when an item is selected (or deselected).
+                 *
+                 * @param e the event to be processed
+                 */
+                @Override
+                public void itemStateChanged(ItemEvent e) {
+
+                    if (e.getStateChange() == ItemEvent.SELECTED) {
+                        String language = languageComboBox.getSelectedItem().toString();
+                        languageField.setText(language);
+                    }
+                }
+
+            });
+
 
             JPanel buttonPanel = new JPanel();
             JButton submit = new JButton("Submit");
@@ -44,7 +110,6 @@ public class GUI {
 
                     // for now, just using our simple translator, but
                     // we'll need to use the real JSON version later.
-                    Translator translator = new CanadaTranslator();
 
                     String result = translator.translate(country, language);
                     if (result == null) {
