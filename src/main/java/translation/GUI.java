@@ -1,7 +1,11 @@
 package translation;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import java.awt.*;
 import java.awt.event.*;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -27,34 +31,38 @@ public class GUI {
         SwingUtilities.invokeLater(() -> {
             // COUNTRY PANEL
             JPanel countryPanel = new JPanel();
+            countryPanel.setLayout(new GridLayout(0, 2));
+            countryPanel.add(new JLabel("Country:"), 0);
             JTextField countryField = new JTextField(10);
-            countryPanel.add(new JLabel("Country:"));
-            countryField.setText("afg");
 
-            // Combo box
+
+
+            String[] items = new String[translator.getCountryCodes().size()];
+
             JComboBox<String> countryComboBox = new JComboBox<>();
-            for(String countryCode : avail_country_codes) {
-                countryComboBox.addItem(countryCode);
+            int i = 0;
+            for(String countryCode : translator.getCountryCodes()) {
+                items[i++] = countryCode;
             }
-            countryPanel.add(countryComboBox);
-            countryComboBox.addItemListener(new ItemListener() {
+
+            JList<String> list = new JList<>(items);
+            list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            JScrollPane scrollPane = new JScrollPane(list);
+            countryPanel.add(scrollPane, 1);
+
+            list.addListSelectionListener(new ListSelectionListener() {
 
                 /**
-                 * Invoked when an item has been selected or deselected by the user.
-                 * The code written for this method performs the operations
-                 * that need to occur when an item is selected (or deselected).
+                 * Called whenever the value of the selection changes.
                  *
-                 * @param e the event to be processed
+                 * @param e the event that characterizes the change.
                  */
                 @Override
-                public void itemStateChanged(ItemEvent e) {
-
-                    if (e.getStateChange() == ItemEvent.SELECTED) {
-                        String country = countryComboBox.getSelectedItem().toString();
-                        countryField.setText(country);
-                    }
+                public void valueChanged(ListSelectionEvent e) {
+                    String country = list.getSelectedValue();
+                    System.out.println(country);
+                    countryField.setText(country);
                 }
-
             });
 
 
@@ -72,13 +80,6 @@ public class GUI {
             languagePanel.add(languageComboBox);
             languageComboBox.addItemListener(new ItemListener() {
 
-                /**
-                 * Invoked when an item has been selected or deselected by the user.
-                 * The code written for this method performs the operations
-                 * that need to occur when an item is selected (or deselected).
-                 *
-                 * @param e the event to be processed
-                 */
                 @Override
                 public void itemStateChanged(ItemEvent e) {
 
